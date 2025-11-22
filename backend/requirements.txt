@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+motor
+pymongo
+python-multipart
+pyjwt
+passlib[bcrypt]
+pandas
