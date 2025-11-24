@@ -1,13 +1,12 @@
 import os
 import requests
+import bcrypt 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
 
 app = FastAPI()
 
 USER_DATA_URL = os.getenv("USER_DATA_URL", "http://user-data-service:80")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class RegisterPayload(BaseModel):
     email: EmailStr
@@ -16,6 +15,7 @@ class RegisterPayload(BaseModel):
 
 @app.post("/register")
 def register(data: RegisterPayload):
+    # 1. Check for duplicates
     try:
         check_resp = requests.get(f"{USER_DATA_URL}/users/{data.email}")
         if check_resp.status_code == 200:
@@ -23,12 +23,20 @@ def register(data: RegisterPayload):
     except requests.exceptions.ConnectionError:
         raise HTTPException(status_code=503, detail="Data Service Unavailable")
 
-    hashed_password = pwd_context.hash(data.password)
+    # Convert string to bytes
+    password_bytes = data.password.encode('utf-8')
+    # Generate salt and hash
+    salt = bcrypt.gensalt()
+    hashed_bytes = bcrypt.hashpw(password_bytes, salt)
+    
+    # Decode back to string so it can be sent as JSON
+    hashed_password_str = hashed_bytes.decode('utf-8')
 
+    # 3. Save User
     new_user = {
         "email": data.email,
         "full_name": data.full_name,
-        "password_hash": hashed_password,
+        "password_hash": hashed_password_str, # Use the new string
         "favorites": []
     }
 

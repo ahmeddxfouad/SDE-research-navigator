@@ -5,6 +5,6 @@ motor
 pymongo
 python-multipart
 pyjwt
-passlib[bcrypt]
+bcrypt
 pandas
 email-validator

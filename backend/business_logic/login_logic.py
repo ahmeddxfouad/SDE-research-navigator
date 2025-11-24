@@ -2,15 +2,14 @@ import os
 import requests
 import jwt
 import datetime
+import bcrypt
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
 
 app = FastAPI()
 
 USER_DATA_URL = os.getenv("USER_DATA_URL", "http://user-data-service:80")
 SECRET_KEY = "my_super_secret_key"
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class LoginPayload(BaseModel):
     email: EmailStr
@@ -18,6 +17,7 @@ class LoginPayload(BaseModel):
 
 @app.post("/login")
 def login(data: LoginPayload):
+    # Fetch User Data
     try:
         user_resp = requests.get(f"{USER_DATA_URL}/users/{data.email}")
         if user_resp.status_code == 404:
@@ -28,9 +28,16 @@ def login(data: LoginPayload):
     user_data = user_resp.json()
     stored_hash = user_data.get("password_hash")
 
-    if not pwd_context.verify(data.password, stored_hash):
+    if not stored_hash:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    # Convert both to bytes for bcrypt
+    input_bytes = data.password.encode('utf-8')
+    stored_hash_bytes = stored_hash.encode('utf-8')
+
+    if not bcrypt.checkpw(input_bytes, stored_hash_bytes):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    # Generate Token
     token_payload = {
         "sub": user_data["email"],
         "name": user_data.get("full_name"),
