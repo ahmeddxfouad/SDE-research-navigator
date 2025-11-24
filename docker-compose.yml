@@ -10,40 +10,54 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  user-data-service:
+    build: ./backend
+    command: uvicorn data_layer.user_data_service:app --host 0.0.0.0 --port 80 --reload
+    environment:
+      - MONGO_URL=mongodb://mongo-db:27017
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - mongo-db
+
   # --- BACKEND SERVICES ---
   # Layer 4: Adapters
   research-paper-adapter:
     build: ./backend
-    command: uvicorn adapters.research_paper_adapter:app --host 0.0.0.0 --port 80
+    command: uvicorn adapters.research_paper_adapter:app --host 0.0.0.0 --port 80 --reload
     volumes:
       - ./backend:/app
 
   uni-adapter:
     build: ./backend
-    command: uvicorn adapters.uni_adapter:app --host 0.0.0.0 --port 80
+    command: uvicorn adapters.uni_adapter:app --host 0.0.0.0 --port 80 --reload
     volumes:
       - ./backend:/app
 
   # Layer 3: Business Logic
   register-logic:
     build: ./backend
-    command: uvicorn business_logic.register_logic:app --host 0.0.0.0 --port 80
+    command: uvicorn business_logic.register_logic:app --host 0.0.0.0 --port 80 --reload
+    environment:
+      - USER_DATA_URL=http://user-data-service:80
     volumes:
       - ./backend:/app
     depends_on:
-      - mongo-db
+      - user-data-service
 
   login-logic:
     build: ./backend
-    command: uvicorn business_logic.login_logic:app --host 0.0.0.0 --port 80
+    command: uvicorn business_logic.login_logic:app --host 0.0.0.0 --port 80 --reload
+    environment:
+      - USER_DATA_URL=http://user-data-service:80
     volumes:
       - ./backend:/app
     depends_on:
-      - mongo-db
+      - user-data-service
 
   filter-logic:
     build: ./backend
-    command: uvicorn business_logic.filter_logic:app --host 0.0.0.0 --port 80
+    command: uvicorn business_logic.filter_logic:app --host 0.0.0.0 --port 80 --reload
     volumes:
       - ./backend:/app
 
@@ -52,7 +66,7 @@ services:
     build: ./backend
     ports:
       - "8001:80"
-    command: uvicorn orchestrators.user_orchestrator:app --host 0.0.0.0 --port 80
+    command: uvicorn orchestrators.user_orchestrator:app --host 0.0.0.0 --port 80 --reload
     environment:
       - REGISTER_URL=http://register-logic:80
       - LOGIN_URL=http://login-logic:80
@@ -66,7 +80,7 @@ services:
     build: ./backend
     ports:
       - "8002:80"
-    command: uvicorn orchestrators.search_orchestrator:app --host 0.0.0.0 --port 80
+    command: uvicorn orchestrators.search_orchestrator:app --host 0.0.0.0 --port 80 --reload
     environment:
       - PAPER_ADAPTER_URL=http://research-paper-adapter:80
       - UNI_URL=http://uni-adapter:80
