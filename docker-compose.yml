@@ -49,6 +49,7 @@ services:
     build: ./backend
     command: uvicorn business_logic.login_logic:app --host 0.0.0.0 --port 80 --reload
     environment:
+      - JWT_SECRET=R25hcm0dC3RhcmYwD6x1R25hcm0dC3RhcmYwD6x1R25hcm0dC3RhcmYwD6x1R25hcm0dC3RhcmYwD6x1
       - USER_DATA_URL=http://user-data-service:80
     volumes:
       - ./backend:/app

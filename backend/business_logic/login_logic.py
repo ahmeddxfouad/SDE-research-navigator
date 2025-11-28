@@ -9,7 +9,7 @@ from pydantic import BaseModel, EmailStr
 app = FastAPI()
 
 USER_DATA_URL = os.getenv("USER_DATA_URL", "http://user-data-service:80")
-SECRET_KEY = "my_super_secret_key"
+SECRET_KEY = os.getenv("JWT_SECRET", "THIS_IS_A_FALLBACK")
 
 class LoginPayload(BaseModel):
     email: EmailStr
