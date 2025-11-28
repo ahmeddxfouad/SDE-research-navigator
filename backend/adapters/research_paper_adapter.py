@@ -11,7 +11,7 @@ def _call_external_api(final_query_string: str, limit: int):
     params = {
         "query": final_query_string,
         "limit": limit,
-        "fields": "paperId,title,abstract,year,authors,venue,url" 
+        "fields": "paperId,title,abstract,year,authors,venue,url"
     }
 
     try:
@@ -28,7 +28,7 @@ def _call_external_api(final_query_string: str, limit: int):
         raise HTTPException(status_code=500, detail="External API Error")
 
 @app.get("/search/global")
-def search_global(query: str, limit: int = 20):
+def search_global(query: str, limit: int = 100):
     """
     Searches ONLY by topic.
     Example: "Machine Learning"
@@ -37,7 +37,7 @@ def search_global(query: str, limit: int = 20):
 
 # --- ENDPOINT 2: Institutional Search ---
 @app.get("/search/institution")
-def search_by_institution(query: str, uni_name: str, limit: int = 20):
+def search_by_institution(query: str, uni_name: str, limit: int = 100):
     """
     Searches by Topic + University Name.
     Example: "Machine Learning" + "Harvard" -> "Machine Learning 'Harvard'"
