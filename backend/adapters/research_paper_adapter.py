@@ -42,8 +42,11 @@ def search_by_institution(query: str, uni_name: str, limit: int = 20):
     Searches by Topic + University Name.
     Example: "Machine Learning" + "Harvard" -> "Machine Learning 'Harvard'"
     """
-    # Construct the specific query string here
-    # Adding quotes around uni_name forces a stricter match
-    combined_query = f'{query} "{uni_name}"'
+
+    # sanitize inputs
+    clean_query = query.strip()
+    clean_uni = uni_name.strip()
+
+    combined_query = f"{clean_query} {clean_uni}"
     
     return _call_external_api(combined_query, limit)
